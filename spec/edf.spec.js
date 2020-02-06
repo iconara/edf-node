@@ -1,6 +1,8 @@
+const fs = require('fs')
 const Edf = require('../lib/edf')
 
 const EDF_HEADER_BUFFER = Buffer.from('0       MCH-0234567 F 16-SEP-1987 Haagse_Harry                                          Startdate 16-SEP-1987 PSG-1234/1987 NN Telemetry03                              16.09.8720.35.00768     Reserved field of 44 characters             2880    30      2   EEG Fpz-Cz      Temp rectal     AgAgCl cup electrodes                                                           Rectal thermistor                                                               uV      degC    -440    34.4    510     40.2    -2048   -2048   2047    2047    HP:0.1Hz LP:75Hz N:50Hz                                                         LP:0.1Hz (first order)                                                          15000   3       Reserved for EEG signal        Reserved for Body temperature    ', 'ascii')
+const EDF_DATA_BUFFER = fs.readFileSync(__dirname + '/resources/20190828_032858_SAD.edf')
 
 describe('Edf', () => {
   describe('.fromBuffer', () => {
@@ -84,6 +86,13 @@ describe('Edf', () => {
         const edf = await Edf.fromBuffer(EDF_HEADER_BUFFER)
         expect(edf.signals[0].sampleCount).toBe(15000)
         expect(edf.signals[1].sampleCount).toBe(3)
+      })
+
+      test('contains the measurements of each signal', async () => {
+        const edf = await Edf.fromBuffer(EDF_DATA_BUFFER)
+        expect(edf.signals[0].data).toStrictEqual(Int16Array.from([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]))
+        expect(edf.signals[1].data).toStrictEqual(Int16Array.from([-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]))
+        expect(edf.signals[2].data).toStrictEqual(Int16Array.from([-9418]))
       })
     })
   })
