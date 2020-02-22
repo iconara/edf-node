@@ -9,6 +9,8 @@ extends:
 globals:
   Atomics: readonly
   SharedArrayBuffer: readonly
+  def: readonly
+  get: readonly
 parserOptions:
   ecmaVersion: 2018
 plugins: 
