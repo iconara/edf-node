@@ -106,6 +106,53 @@ describe('Edf', () => {
           expect(edf.signals[8].data).toStrictEqual(Int16Array.from([  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0]))
           expect(edf.signals[9].data).toStrictEqual(Int16Array.from([-27479]))
         })
+
+        describe('can be converted into an Arrow table that', () => {
+          test('has each signal as a column', async () => {
+            const edf = await Edf.fromBuffer(get('edfBuffer'))
+            const table = edf.toTable()
+            const fieldNames = table.schema.fields.map((f) => f.name)
+            expect(fieldNames).toEqual([
+              'MaskPress.2s',
+              'Press.2s',
+              'EprPress.2s',
+              'Leak.2s',
+              'RespRate.2s',
+              'TidVol.2s',
+              'MinVent.2s',
+              'Snore.2s',
+              'FlowLim.2s',
+              'Crc16',
+            ])
+          })
+
+          test('has each signal\'s measurements', async () => {
+            const edf = await Edf.fromBuffer(get('edfBuffer'))
+            const table = edf.toTable()
+            const column = table.getColumn('Leak.2s')
+            expect(Array.from(column)).toEqual(Array.from(edf.signals[3].data))
+          })
+
+          test('contains the file metadata', async () => {
+            const edf = await Edf.fromBuffer(get('edfBuffer'))
+            const table = edf.toTable()
+            expect(table.schema.metadata.get('startDateTime')).toBe(1579130110000)
+          })
+
+          test('contains the signal metadata', async () => {
+            const edf = await Edf.fromBuffer(get('edfBuffer'))
+            const table = edf.toTable()
+            const column = table.getColumn('Leak.2s')
+            expect(column.field.metadata.get('transducerType')).toBe('')
+            expect(column.field.metadata.get('physicalDimension')).toBe('L/s')
+            expect(column.field.metadata.get('physicalMinimum')).toBe(0)
+            expect(column.field.metadata.get('physicalMaximum')).toBe(2)
+            expect(column.field.metadata.get('digitalMinimum')).toBe(0)
+            expect(column.field.metadata.get('digitalMaximum')).toBe(100)
+            expect(column.field.metadata.get('prefiltering')).toBe('')
+            expect(column.field.metadata.get('sampleCount')).toBe(30)
+          })
+        })
       })
     })
   })

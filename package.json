@@ -14,5 +14,8 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "dependencies": {
+    "apache-arrow": "^0.16.0"
   }
 }
