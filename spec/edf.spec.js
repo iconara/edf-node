@@ -87,10 +87,26 @@ describe('Edf', () => {
       def('edfBuffer', () => fs.readFileSync(__dirname + '/resources/20200115_231509_PLD.edf'))
 
       describe('returns an Edf object that', () => {
+        test('contains each signal, except for the checksum signal', async () => {
+          const edf = await Edf.fromBuffer(get('edfBuffer'))
+          expect(edf.signalNames).not.toInclude('Crc16')
+          expect(edf.signalNames).toEqual([
+            'MaskPress.2s',
+            'Press.2s',
+            'EprPress.2s',
+            'Leak.2s',
+            'RespRate.2s',
+            'TidVol.2s',
+            'MinVent.2s',
+            'Snore.2s',
+            'FlowLim.2s',
+          ])
+        })
+
         test('contains the measurements of each signal', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           const leakSignal = edf.getSignal('Leak.2s')
-          const crcSignal = edf.getSignal('Crc16')
+          const snoreSignal = edf.getSignal('Snore.2s')
           expect(leakSignal).toHaveLength(169 * 30)
           expect(leakSignal.slice(0, 120).toArray()).toEqual(Int16Array.from([
             2, 3, 5, 4, 3, 0, 3, 4, 2, 4,
@@ -106,8 +122,21 @@ describe('Edf', () => {
             1, 1, 1, 2, 2, 1, 3, 2, 2, 2,
             1, 1, 1, 1, 1, 2, 2, 1, 1, 1,
           ]))
-          // expect(crcSignal).toHaveLength(169)
-          expect(crcSignal.slice(0, 3).toArray()).toEqual(Int16Array.from([-27479, 17000, -7973]))
+          expect(snoreSignal).toHaveLength(169 * 30)
+          expect(snoreSignal.slice(0, 120).toArray()).toEqual(Int16Array.from([
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          ]))
         })
 
         describe('can be converted into an Arrow table that', () => {
@@ -116,18 +145,6 @@ describe('Edf', () => {
             const table = edf.toTable()
             const fieldNames = table.schema.fields.map((f) => f.name)
             expect(fieldNames).toEqual(edf.signalNames)
-            expect(fieldNames).toEqual([
-              'MaskPress.2s',
-              'Press.2s',
-              'EprPress.2s',
-              'Leak.2s',
-              'RespRate.2s',
-              'TidVol.2s',
-              'MinVent.2s',
-              'Snore.2s',
-              'FlowLim.2s',
-              'Crc16',
-            ])
           })
 
           test('has each signal\'s measurements', async () => {
