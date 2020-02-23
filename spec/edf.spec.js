@@ -9,7 +9,7 @@ describe('Edf', () => {
       describe('returns an Edf object that', () => {
         test('contains the start date time, interpreted as an UTC instant', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
-          expect(edf.startDateTime).toBe(Date.UTC(1987, 8, 16, 20, 35, 0))
+          expect(edf.startTimestamp).toBe(Date.UTC(1987, 8, 16, 20, 35, 0))
         })
 
         describe('when the start date does not appear in the record ID field', () => {
@@ -17,7 +17,7 @@ describe('Edf', () => {
 
           test('falls back on the start date field', async () => {
             const edf = await Edf.fromBuffer(get('edfBuffer'))
-            expect(edf.startDateTime).toBe(Date.UTC(1987, 8, 16, 20, 35, 0))
+            expect(edf.startTimestamp).toBe(Date.UTC(1987, 8, 16, 20, 35, 0))
           })
 
           describe('and the year is 2020', () => {
@@ -31,7 +31,7 @@ describe('Edf', () => {
 
             test('falls back on the start date field', async () => {
               const edf = await Edf.fromBuffer(get('edfBuffer'))
-              expect(edf.startDateTime).toBe(Date.UTC(2019, 8, 16, 20, 35, 0))
+              expect(edf.startTimestamp).toBe(Date.UTC(2019, 8, 16, 20, 35, 0))
             })
           })
         })
@@ -162,7 +162,7 @@ describe('Edf', () => {
           test('contains the file metadata', async () => {
             const edf = await Edf.fromBuffer(get('edfBuffer'))
             const table = edf.toTable()
-            expect(table.schema.metadata.get('startDateTime')).toBe(1579130110000)
+            expect(table.schema.metadata.get('startTimestamp')).toBe(1579130110000)
             expect(table.schema.metadata.get('duration')).toBe(60 * 169 * 1000)
           })
 
