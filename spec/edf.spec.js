@@ -41,6 +41,11 @@ describe('Edf', () => {
           expect(edf.duration).toBe(30 * 2880 * 1000)
         })
 
+        test('contains the total number of measurements', async () => {
+          const edf = await Edf.fromBuffer(get('edfBuffer'))
+          expect(edf.length).toBe(15000 * 2880)
+        })
+
         test('contains the names of each signal', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           expect(edf.signalNames).toEqual([
