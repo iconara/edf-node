@@ -46,18 +46,17 @@ describe('Edf', () => {
           expect(edf.length).toBe(15 * 2880)
         })
 
-        test('has a timestamp signal', async () => {
+        test('can generate the timestamps for the signal measurements', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
-          const timestampSignal = edf.getSignal('timestamp')
-          expect(timestampSignal.get(0)).toBe(edf.startTimestamp)
-          expect(timestampSignal.get(1)).toBe(edf.startTimestamp + edf.duration/edf.length)
-          expect(timestampSignal.get(edf.length - 1)).toBe(edf.startTimestamp + edf.duration - edf.duration/edf.length)
+          const timestamps = Array.from(edf.timestamps)
+          expect(timestamps[0]).toBe(edf.startTimestamp)
+          expect(timestamps[1]).toBe(edf.startTimestamp + edf.duration/edf.length)
+          expect(timestamps[edf.length - 1]).toBe(edf.startTimestamp + edf.duration - edf.duration/edf.length)
         })
 
         test('contains the names of each signal', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           expect(edf.signalNames).toEqual([
-            'timestamp',
             'EEG Fpz-Cz',
             'Temp rectal',
           ])
@@ -105,7 +104,6 @@ describe('Edf', () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           expect(edf.signalNames).not.toInclude('Crc16')
           expect(edf.signalNames).toEqual([
-            'timestamp',
             'MaskPress.2s',
             'Press.2s',
             'EprPress.2s',
