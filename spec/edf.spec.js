@@ -4,7 +4,7 @@ const Edf = require('../lib/edf')
 describe('Edf', () => {
   describe('.fromBuffer', () => {
     describe('with EDF+ data that contains a header', () => {
-      def('edfBuffer', () => Buffer.from('0       MCH-0234567 F 16-SEP-1987 Haagse_Harry                                          Startdate 16-SEP-1987 PSG-1234/1987 NN Telemetry03                              16.09.8720.35.00768     Reserved field of 44 characters             2880    30      2   EEG Fpz-Cz      Temp rectal     AgAgCl cup electrodes                                                           Rectal thermistor                                                               uV      degC    -440    34.4    510     40.2    -2048   -2048   2047    2047    HP:0.1Hz LP:75Hz N:50Hz                                                         LP:0.1Hz (first order)                                                          15000   3       Reserved for EEG signal        Reserved for Body temperature    ', 'ascii'))
+      def('edfBuffer', () => Buffer.from('0       MCH-0234567 F 16-SEP-1987 Haagse_Harry                                          Startdate 16-SEP-1987 PSG-1234/1987 NN Telemetry03                              16.09.8720.35.00768     Reserved field of 44 characters             2880    30      2   EEG Fpz-Cz      Temp rectal     AgAgCl cup electrodes                                                           Rectal thermistor                                                               uV      degC    -440    34.4    510     40.2    -2048   -2048   2047    2047    HP:0.1Hz LP:75Hz N:50Hz                                                         LP:0.1Hz (first order)                                                             15   3       Reserved for EEG signal        Reserved for Body temperature    ', 'ascii'))
 
       describe('returns an Edf object that', () => {
         test('contains the start date time, interpreted as an UTC instant', async () => {
@@ -43,12 +43,21 @@ describe('Edf', () => {
 
         test('contains the total number of measurements', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
-          expect(edf.length).toBe(15000 * 2880)
+          expect(edf.length).toBe(15 * 2880)
+        })
+
+        test('has a timestamp signal', async () => {
+          const edf = await Edf.fromBuffer(get('edfBuffer'))
+          const timestampSignal = edf.getSignal('timestamp')
+          expect(timestampSignal.get(0)).toBe(edf.startTimestamp)
+          expect(timestampSignal.get(1)).toBe(edf.startTimestamp + edf.duration/edf.length)
+          expect(timestampSignal.get(edf.length - 1)).toBe(edf.startTimestamp + edf.duration - edf.duration/edf.length)
         })
 
         test('contains the names of each signal', async () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           expect(edf.signalNames).toEqual([
+            'timestamp',
             'EEG Fpz-Cz',
             'Temp rectal',
           ])
@@ -96,6 +105,7 @@ describe('Edf', () => {
           const edf = await Edf.fromBuffer(get('edfBuffer'))
           expect(edf.signalNames).not.toInclude('Crc16')
           expect(edf.signalNames).toEqual([
+            'timestamp',
             'MaskPress.2s',
             'Press.2s',
             'EprPress.2s',
