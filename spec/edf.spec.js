@@ -6,16 +6,16 @@ describe('Edf', () => {
     def('edfBuffer', () => fs.readFileSync(__dirname + '/resources/20200115_231509_PLD.edf'))
 
     describe('returns an Edf object that', () => {
-      test('contains the start date time, interpreted as an UTC instant', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the start date time, interpreted as an UTC instant', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         expect(edf.startTimestamp).toBe(Date.UTC(2020, 0, 15, 23, 15, 10))
       })
 
       describe('when the start date does not appear in the record ID field', () => {
         def('edfBuffer', () => Buffer.from(get('edfBuffer').toString('ascii').replace('Startdate 15-JAN-2020', '                     '), 'ascii'))
 
-        test('falls back on the start date field', async () => {
-          const edf = await Edf.fromBuffer(get('edfBuffer'))
+        test('falls back on the start date field', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
           expect(edf.startTimestamp).toBe(Date.UTC(2020, 0, 15, 23, 15, 10))
         })
 
@@ -27,33 +27,33 @@ describe('Edf', () => {
             return Buffer.from(modifiedHeader, 'ascii')
           })
 
-          test('falls back on the start date field', async () => {
-            const edf = await Edf.fromBuffer(get('edfBuffer'))
+          test('falls back on the start date field', () => {
+            const edf = Edf.fromBuffer(get('edfBuffer'))
             expect(edf.startTimestamp).toBe(Date.UTC(1987, 8, 16, 23, 15, 10))
           })
         })
       })
 
-      test('contains the record duration', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the record duration', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         expect(edf.duration).toBe(60 * 169 * 1000)
       })
 
-      test('contains the total number of measurements', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the total number of measurements', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         expect(edf.length).toBe(30 * 169)
       })
 
-      test('can generate the timestamps for the signal measurements', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('can generate the timestamps for the signal measurements', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         const timestamps = Array.from(edf.timestamps)
         expect(timestamps[0]).toBe(edf.startTimestamp)
         expect(timestamps[1]).toBe(edf.startTimestamp + edf.duration/edf.length)
         expect(timestamps[edf.length - 1]).toBe(edf.startTimestamp + edf.duration - edf.duration/edf.length)
       })
 
-      test('contains each signal, except for the checksum signal', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains each signal, except for the checksum signal', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         expect(edf.signalNames).not.toInclude('Crc16')
         expect(edf.signalNames).toEqual([
           'MaskPress.2s',
@@ -68,7 +68,7 @@ describe('Edf', () => {
         ])
       })
 
-      test('contains the signal metadata', async () => {
+      test('contains the signal metadata', () => {
         let modifiedBuffer = get('edfBuffer').toString('ascii')
         modifiedBuffer = ''
           + modifiedBuffer.substr(0, 256 + 16 * 10 + 80 * 3)
@@ -76,7 +76,7 @@ describe('Edf', () => {
           + modifiedBuffer.substr(256 + 16 * 10 + 80 * 3 + 13, 6 * 80 + 8 * 10 * 5 + 80 * 4)
           + 'No prefiltering'
           + modifiedBuffer.substr(256 + 16 * 10 + 80 * 3 + 13 + 6 * 80 + 8 * 10 * 5 + 80 * 4 + 15)
-        const edf = await Edf.fromBuffer(Buffer.from(modifiedBuffer, 'ascii'))
+        const edf = Edf.fromBuffer(Buffer.from(modifiedBuffer, 'ascii'))
         const leakSignal = edf.getSignal('Leak.2s')
         const snoreSignal = edf.getSignal('Snore.2s')
         expect(leakSignal.metadata.get('transducerType')).toBe('No transducer')
@@ -87,8 +87,8 @@ describe('Edf', () => {
         expect(snoreSignal.metadata.get('prefiltering')).toBe('')
       })
 
-      test('contains the signal physical min and max', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the signal physical min and max', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         const leakSignal = edf.getSignal('Leak.2s')
         const snoreSignal = edf.getSignal('Snore.2s')
         expect(leakSignal.metadata.get('physicalMinimum')).toBe(0)
@@ -97,8 +97,8 @@ describe('Edf', () => {
         expect(snoreSignal.metadata.get('physicalMaximum')).toBe(5)
       })
 
-      test('contains the signal digital min and max', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the signal digital min and max', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         const leakSignal = edf.getSignal('Leak.2s')
         const snoreSignal = edf.getSignal('Snore.2s')
         expect(leakSignal.metadata.get('digitalMinimum')).toBe(0)
@@ -107,8 +107,8 @@ describe('Edf', () => {
         expect(snoreSignal.metadata.get('digitalMaximum')).toBe(250)
       })
 
-      test('contains the measurements of each signal', async () => {
-        const edf = await Edf.fromBuffer(get('edfBuffer'))
+      test('contains the measurements of each signal', () => {
+        const edf = Edf.fromBuffer(get('edfBuffer'))
         const leakSignal = edf.getSignal('Leak.2s')
         const snoreSignal = edf.getSignal('Snore.2s')
         expect(leakSignal).toHaveLength(169 * 30)
@@ -144,29 +144,29 @@ describe('Edf', () => {
       })
 
       describe('can be converted into an Arrow table that', () => {
-        test('has each signal as a column', async () => {
-          const edf = await Edf.fromBuffer(get('edfBuffer'))
+        test('has each signal as a column', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
           const fieldNames = table.schema.fields.map((f) => f.name)
           expect(fieldNames).toEqual(edf.signalNames)
         })
 
-        test('has each signal\'s measurements', async () => {
-          const edf = await Edf.fromBuffer(get('edfBuffer'))
+        test('has each signal\'s measurements', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
           const column = table.getColumn('Leak.2s')
           expect(column.toArray()).toEqual(edf.getSignal('Leak.2s').toArray())
         })
 
-        test('contains the file metadata', async () => {
-          const edf = await Edf.fromBuffer(get('edfBuffer'))
+        test('contains the file metadata', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
           expect(table.schema.metadata.get('startTimestamp')).toBe(1579130110000)
           expect(table.schema.metadata.get('duration')).toBe(60 * 169 * 1000)
         })
 
-        test('contains the signal metadata', async () => {
-          const edf = await Edf.fromBuffer(get('edfBuffer'))
+        test('contains the signal metadata', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
           const column = table.getColumn('Leak.2s')
           expect(column.field.metadata).toEqual(edf.getSignal('Leak.2s').metadata)
