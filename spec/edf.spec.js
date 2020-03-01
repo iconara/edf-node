@@ -173,5 +173,44 @@ describe('Edf', () => {
         })
       })
     })
+
+    describe('with EDF annotations', () => {
+      def('edfBuffer', () => fs.readFileSync(__dirname + '/resources/20200115_231501_EVE.edf'))
+
+      describe('returns an Edf object that', () => {
+        test('does not contain an annotations signal', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
+          expect(edf.signalNames).not.toInclude('EDF Annotations')
+        })
+
+        test('contains annotations', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
+          const startAnnotation = edf.annotations[1]
+          const apneaAnnotation = edf.annotations[5]
+          expect(startAnnotation.onset).toEqual(0)
+          expect(startAnnotation.duration).toEqual(0)
+          expect(startAnnotation.note).toEqual('Recording starts')
+          expect(apneaAnnotation.onset).toEqual(13759000)
+          expect(apneaAnnotation.duration).toEqual(11000)
+          expect(apneaAnnotation.note).toEqual('Obstructive Apnea')
+        })
+      })
+
+      describe('can be converted into an Arrow table that', () => {
+        test('contains the annotations in the metadata', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
+          const table = edf.toTable()
+          const annotations = table.schema.metadata.get('annotations')
+          const startAnnotation = annotations[1]
+          const apneaAnnotation = annotations[5]
+          expect(startAnnotation.onset).toEqual(0)
+          expect(startAnnotation.duration).toEqual(0)
+          expect(startAnnotation.note).toEqual('Recording starts')
+          expect(apneaAnnotation.onset).toEqual(13759000)
+          expect(apneaAnnotation.duration).toEqual(11000)
+          expect(apneaAnnotation.note).toEqual('Obstructive Apnea')
+        })
+      })
+    })
   })
 })
