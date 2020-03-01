@@ -183,10 +183,16 @@ describe('Edf', () => {
           expect(edf.signalNames).not.toInclude('EDF Annotations')
         })
 
+        test('does not contain record offset annotations', () => {
+          const edf = Edf.fromBuffer(get('edfBuffer'))
+          const offsetAnnotations = edf.annotations.filter((a) => a.onset === 0 && a.duration === undefined && a.note === undefined)
+          expect(offsetAnnotations).toBeEmpty()
+        })
+
         test('contains annotations', () => {
           const edf = Edf.fromBuffer(get('edfBuffer'))
-          const startAnnotation = edf.annotations[1]
-          const apneaAnnotation = edf.annotations[5]
+          const startAnnotation = edf.annotations[0]
+          const apneaAnnotation = edf.annotations[2]
           expect(startAnnotation.onset).toEqual(0)
           expect(startAnnotation.duration).toEqual(0)
           expect(startAnnotation.note).toEqual('Recording starts')
@@ -201,8 +207,8 @@ describe('Edf', () => {
           const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
           const annotations = table.schema.metadata.get('annotations')
-          const startAnnotation = annotations[1]
-          const apneaAnnotation = annotations[5]
+          const startAnnotation = annotations[0]
+          const apneaAnnotation = annotations[2]
           expect(startAnnotation.onset).toEqual(0)
           expect(startAnnotation.duration).toEqual(0)
           expect(startAnnotation.note).toEqual('Recording starts')
