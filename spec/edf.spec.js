@@ -203,10 +203,10 @@ describe('Edf', () => {
       })
 
       describe('can be converted into an Arrow table that', () => {
-        test('contains the annotations in the metadata', () => {
+        test('contains the JSON encoded annotations in the metadata', () => {
           const edf = Edf.fromBuffer(get('edfBuffer'))
           const table = edf.toTable()
-          const annotations = table.schema.metadata.get('annotations')
+          const annotations = JSON.parse(table.schema.metadata.get('annotations'))
           const startAnnotation = annotations[0]
           const apneaAnnotation = annotations[2]
           expect(startAnnotation.onset).toEqual(0)
