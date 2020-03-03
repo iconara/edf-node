@@ -16,6 +16,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "apache-arrow": "^0.16.0"
+    "@apache-arrow/es2015-cjs": "^0.16.0"
   }
 }
